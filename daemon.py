@@ -9,8 +9,7 @@ import sys
 
 LOGGING_FILE = "/tmp/test.log"
 PID = "/tmp/test.pid"
-# DIRECTORY = "/home/user/music"
-DIRECTORY = "/tmp/test"
+DIRECTORY = "/home/user/music"
 OUTPUT_DIR = os.path.join(DIRECTORY, 'mp3')
 EXTENSION = 'wav'
 
