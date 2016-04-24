@@ -3,10 +3,15 @@ from daemonize import Daemonize
 import logging
 import signal
 from datetime import datetime
+import os
+from pydub import AudioSegment
+import sys
 
 LOGGING_FOLDER = "/tmp/test.log"
 PID = "/tmp/test.pid"
 DIRECTORY = "/home/user/music"
+OUTPUT_DIR = os.path.join(DIRECTORY, 'mp3')
+EXTENSION = 'wav'
 
 
 class ExtendedDaemonize(Daemonize):
@@ -37,9 +42,29 @@ keep_fds = [fh.stream.fileno()]
 
 
 def main():
-    logger.debug("Test")
+    converted_files = []
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
     while True:
-        print('hello')
+        files = [f for f in os.listdir(DIRECTORY) if os.path.isfile(
+            os.path.join(DIRECTORY, f))]
+        for f in files:
+            if f.split('.')[1] == EXTENSION and f not in converted_files:
+                new_name = f.split('.')[0] + '.mp3'
+                now = datetime.now().strftime('%Y.%m.%d %H:%M')
+                try:
+                    AudioSegment.from_wav(os.path.join(DIRECTORY, f)).export(
+                        os.path.join(OUTPUT_DIR, new_name), format="mp3")
+                    converted_files.append(f)
+                    logger.debug(
+                        "{} Успешно переконвертировали файл {} ".format(now, f)
+                    )
+                except Exception as e:
+                    logger.error(
+                        "{} Ошибка при конвертации файла {}, текст: {}".
+                        format(now, f, e)
+                    )
+                    sys.exit(1)
 
 daemon = ExtendedDaemonize(
     app="test_app", pid=PID,
