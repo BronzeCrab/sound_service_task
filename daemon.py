@@ -7,9 +7,10 @@ import os
 from pydub import AudioSegment
 import sys
 
-LOGGING_FOLDER = "/tmp/test.log"
+LOGGING_FILE = "/tmp/test.log"
 PID = "/tmp/test.pid"
-DIRECTORY = "/home/user/music"
+# DIRECTORY = "/home/user/music"
+DIRECTORY = "/tmp/test"
 OUTPUT_DIR = os.path.join(DIRECTORY, 'mp3')
 EXTENSION = 'wav'
 
@@ -35,7 +36,7 @@ class ExtendedDaemonize(Daemonize):
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.propagate = False
-fh = logging.FileHandler(LOGGING_FOLDER, "w")
+fh = logging.FileHandler(LOGGING_FILE, "w")
 fh.setLevel(logging.DEBUG)
 logger.addHandler(fh)
 keep_fds = [fh.stream.fileno()]
@@ -44,7 +45,14 @@ keep_fds = [fh.stream.fileno()]
 def main():
     converted_files = []
     if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
+        try:
+            os.makedirs(OUTPUT_DIR)
+        except Exception as e:
+            now = datetime.now().strftime('%Y.%m.%d %H:%M')
+            logger.error(
+                "{} Ошибка при создании директории, текст: {}".format(now, e)
+            )
+            sys.exit(1)
     while True:
         files = [f for f in os.listdir(DIRECTORY) if os.path.isfile(
             os.path.join(DIRECTORY, f))]
